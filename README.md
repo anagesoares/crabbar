@@ -81,4 +81,4 @@ Renomear o arquivo em `plugins/`: `clawd.5m.py` (5 min), `clawd.30s.py` (30s), e
 
 ## Créditos
 
-**Autora:** Ana G. Soares. Baseado no [Clawdmeter](https://github.com/HermannBjorgvin/Clawdmeter) de Hermann Björgvin. Licença MIT.
+**Autora:** [Ana G. Soares](https://instagram.com/ana.gsoares). Baseado no [Clawdmeter](https://github.com/HermannBjorgvin/Clawdmeter) de Hermann Björgvin. Licença MIT.
