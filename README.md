@@ -102,7 +102,7 @@ A escolha fica salva em `~/.cache/crabbar/prefs.json`.
 
 ## Cores
 
-roxo `< 75%` · âmbar `75–89%` · vermelho `≥ 90%`. O título ganha 🟠/🔴 conforme o **pior** limite. Thresholds configuráveis (`CRAB_WARN`/`CRAB_CRIT`).
+roxo `< 75%` · âmbar `75–89%` · vermelho `≥ 90%`, aplicadas a cada limite **no dropdown**. Thresholds configuráveis (`CRAB_WARN`/`CRAB_CRIT`).
 
 ## Ajustar o intervalo
 

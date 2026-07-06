@@ -523,8 +523,10 @@ def _read_prefs():
 def _write_prefs(d):
     try:
         os.makedirs(CACHE_DIR, exist_ok=True)
-        with open(PREFS_FILE, "w") as f:
+        tmp = PREFS_FILE + ".tmp"
+        with open(tmp, "w") as f:
             json.dump(d, f)
+        os.replace(tmp, PREFS_FILE)  # atômico: refresh nunca lê arquivo pela metade
     except OSError:
         pass
 
@@ -557,8 +559,6 @@ def main():
     # ----- menu bar title -----
     TITLE = "#ffffff"  # branco puro (sem par claro/escuro)
     if limits:
-        worst = max((l["used"] for l in limits), default=0)
-        flag = "🔴" if worst >= CRIT else ("🟠" if worst >= WARN else "")
         tail = " ⏳" if stale else ""  # ⏳ = número de cache (offline/backoff)
         mode = title_mode()
         segs = []
@@ -574,7 +574,7 @@ def main():
             else:  # window (default)
                 segs.append(f"{l['short']} {pc}%")
         sep = "  " if mode == "reset" else " · "
-        print(f"🦀{flag} " + sep.join(segs) + tail + f" | color={TITLE}")
+        print(f"🦀 " + sep.join(segs) + tail + f" | color={TITLE}")
     elif spend:
         print(f"🦀 ${spend['all_cost']:.2f} | color={TITLE}")
     else:
@@ -638,12 +638,17 @@ def main():
 
 
 if __name__ == "__main__":
-    # Item do menu chama `crabbar.2m.py --set-title <modo>`: salva e sai.
+    # Item do menu chama `crabbar.2m.py --set-title <modo>`: salva, redesenha e sai.
     if len(sys.argv) >= 3 and sys.argv[1] == "--set-title":
         if sys.argv[2] in TITLE_MODES:
             _p = _read_prefs()
             _p["title_mode"] = sys.argv[2]
             _write_prefs(_p)
+        # dispara o refresh DEPOIS de gravar → aplica no 1º clique (sem corrida)
+        try:
+            subprocess.run(["open", "-g", "swiftbar://refreshallplugins"], timeout=5)
+        except (OSError, subprocess.SubprocessError):
+            pass
         sys.exit(0)
     try:
         main()
