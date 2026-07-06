@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Clawdmeter SwiftBar — instalador (macOS)
+# CrabBar — instalador (macOS)
 # Aponta o SwiftBar pra pasta plugins/, adiciona ao login e abre o app.
 # Idempotente: pode rodar de novo sem duplicar nada.
 set -euo pipefail
@@ -18,7 +18,7 @@ fi
 defaults write com.ameba.SwiftBar PluginDirectory "$PLUGIN_DIR"
 
 # 3. Garantir que o plugin é executável
-chmod +x "$PLUGIN_DIR"/clawd.*.py
+chmod +x "$PLUGIN_DIR"/crabbar.*.py
 
 # 4. Abrir automaticamente no login (idempotente — não duplica)
 osascript <<'EOF'

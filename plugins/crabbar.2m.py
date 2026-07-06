@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-# <xbar.title>Clawdmeter (barra de menus)</xbar.title>
+# <xbar.title>CrabBar (Claude Code na barra de menus)</xbar.title>
 # <xbar.version>v2.0</xbar.version>
-# <xbar.author>Autora: Ana G. Soares (adaptado do Clawdmeter)</xbar.author>
+# <xbar.author>Autora: Ana G. Soares (adaptado do Clawdmeter de HermannBjorgvin)</xbar.author>
 # <xbar.desc>Uso do Claude Code na barra de menus: TODOS os limites (5h, semanal, por-modelo como Fable/Opus/Sonnet) lidos do endpoint de usage da Anthropic (zero token), mais gasto local via ccusage.</xbar.desc>
 # <xbar.dependencies>python3,node(npx),ccusage</xbar.dependencies>
 #
@@ -15,10 +15,10 @@
 #   2. Gasto (tokens + $): `ccusage -j` lê ~/.claude/projects/**/*.jsonl localmente.
 #
 # Env opcionais:
-#   CLAWD_NO_PING=1     desliga a leitura de limites (fica só o gasto local)
-#   CLAWD_SHOW=remaining mostra % RESTANTE em vez de % usado
-#   CLAWD_WARN=75        threshold âmbar (default 75)
-#   CLAWD_CRIT=90        threshold vermelho (default 90)
+#   CRAB_NO_PING=1     desliga a leitura de limites (fica só o gasto local)
+#   CRAB_SHOW=remaining mostra % RESTANTE em vez de % usado
+#   CRAB_WARN=75        threshold âmbar (default 75)
+#   CRAB_CRIT=90        threshold vermelho (default 90)
 
 import getpass
 import json
@@ -40,7 +40,7 @@ API_HEADERS = {
 }
 
 # Resiliência: cache do último valor bom + backoff em 429 (estilo LimitBar).
-CACHE_DIR = os.path.join(os.path.expanduser("~"), ".cache", "clawdmeter")
+CACHE_DIR = os.path.join(os.path.expanduser("~"), ".cache", "crabbar")
 CACHE_FILE = os.path.join(CACHE_DIR, "usage.json")
 STALE_MAX_MIN = 60       # acima disso o cache é velho demais → indisponível
 BACKOFF_MIN_429 = 10     # após 429, não bate na API por N min (serve cache)
@@ -53,9 +53,9 @@ def _thr(name, default):
     except (TypeError, ValueError):
         return default
 
-WARN = _thr("CLAWD_WARN", 75)
-CRIT = _thr("CLAWD_CRIT", 90)
-SHOW_REMAINING = os.environ.get("CLAWD_SHOW", "").lower() in ("remaining", "restante", "left")
+WARN = _thr("CRAB_WARN", 75)
+CRIT = _thr("CRAB_CRIT", 90)
+SHOW_REMAINING = os.environ.get("CRAB_SHOW", "").lower() in ("remaining", "restante", "left")
 
 # Cores. Pares "claro,escuro": 1º p/ tema claro (fundo branco → tons escuros),
 # 2º p/ tema escuro (tons mais vivos).
@@ -129,7 +129,7 @@ def run_ccusage():
         ["ccusage", "-j"],
         ["npx", "--yes", "ccusage@latest", "-j"],
     ]
-    override = os.environ.get("CLAWD_CCUSAGE_CMD")
+    override = os.environ.get("CRAB_CCUSAGE_CMD")
     if override:
         candidates.insert(0, override.split())
     env = dict(os.environ)
@@ -219,7 +219,7 @@ def read_token():
     return extract_token(out.stdout)
 
 
-# ---- auto-refresh do token OAuth (OPT-IN: CLAWD_AUTO_REFRESH=1) --------------
+# ---- auto-refresh do token OAuth (OPT-IN: CRAB_AUTO_REFRESH=1) --------------
 # Regrava o MESMO item de Keychain que o Claude Code usa. Por isso é opt-in,
 # faz backup antes de escrever e preserva todos os campos existentes.
 OAUTH_TOKEN_URL = "https://platform.claude.com/v1/oauth/token"
@@ -276,10 +276,10 @@ def _write_credentials(data):
 def refresh_token(now):
     """Renova o access token via OAuth e regrava. Retorna o novo token ou None.
 
-    Só roda com CLAWD_AUTO_REFRESH=1. Mesmo fluxo que o Claude Code usa:
+    Só roda com CRAB_AUTO_REFRESH=1. Mesmo fluxo que o Claude Code usa:
     POST /v1/oauth/token grant_type=refresh_token. NÃO gasta token de modelo.
     """
-    if os.environ.get("CLAWD_AUTO_REFRESH") != "1":
+    if os.environ.get("CRAB_AUTO_REFRESH") != "1":
         return None
     creds = _read_credentials()
     if not creds:
@@ -432,7 +432,7 @@ def poll_limit():
     (offline, 429, 5xx) serve o cache marcado como 'stale' em vez de sumir.
     Em 429 sustentado, recua BACKOFF_MIN_429 min antes de bater de novo.
     """
-    if os.environ.get("CLAWD_NO_PING") == "1":
+    if os.environ.get("CRAB_NO_PING") == "1":
         return None
     now = time.time()
     cache = _read_cache()
@@ -497,7 +497,7 @@ def fmt_mins(m):
 
 
 def disp_pct(used):
-    """% a exibir conforme CLAWD_SHOW (usado por default, restante se pedido)."""
+    """% a exibir conforme CRAB_SHOW (usado por default, restante se pedido)."""
     if used is None:
         return None
     return 100 - used if SHOW_REMAINING else used
@@ -550,8 +550,8 @@ def main():
                   f"size=14 font=Menlo color={color}")
         src = "último valor bom (offline)" if stale else "/api/oauth/usage — zero token"
         print(f"Fonte: {src} | {HEAD}")
-    elif os.environ.get("CLAWD_NO_PING") == "1":
-        print(f"Limites: leitura desligada (CLAWD_NO_PING=1) | {HEAD}")
+    elif os.environ.get("CRAB_NO_PING") == "1":
+        print(f"Limites: leitura desligada (CRAB_NO_PING=1) | {HEAD}")
     else:
         print(f"Limites indisponíveis (sem token ou offline) | {HEAD}")
 
