@@ -631,25 +631,23 @@ def main():
                        ("window", "Janela (5h · 7d)"),
                        ("reset", "Percentual + reset")):
         _mark = "✓ " if _key == _cur else ""
-        # sem refresh=true: o próprio --set-title redesenha DEPOIS de gravar (1 clique).
+        # refresh=true: SwiftBar roda o --set-title (grava atômico) e SÓ DEPOIS
+        # redesenha o plugin → aplica no 1º clique.
         print(f"-- {_mark}{_lbl} | bash=\"{SELF}\" param1=--set-title "
-              f"param2={_key} terminal=false")
+              f"param2={_key} terminal=false refresh=true")
     print(f"Atualizado {time.strftime('%H:%M:%S')} | {HEAD}")
     print("Atualizar agora | refresh=true")
 
 
 if __name__ == "__main__":
-    # Item do menu chama `crabbar.2m.py --set-title <modo>`: salva, redesenha e sai.
+    # Item do menu chama `crabbar.2m.py --set-title <modo>`: grava e sai.
+    # O redesenho fica por conta do refresh=true do item (SwiftBar espera este
+    # processo terminar antes de refrescar → a prefs já está no disco).
     if len(sys.argv) >= 3 and sys.argv[1] == "--set-title":
         if sys.argv[2] in TITLE_MODES:
             _p = _read_prefs()
             _p["title_mode"] = sys.argv[2]
             _write_prefs(_p)
-        # dispara o refresh DEPOIS de gravar → aplica no 1º clique (sem corrida)
-        try:
-            subprocess.run(["open", "-g", "swiftbar://refreshallplugins"], timeout=5)
-        except (OSError, subprocess.SubprocessError):
-            pass
         sys.exit(0)
     try:
         main()
