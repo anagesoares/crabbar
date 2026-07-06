@@ -88,6 +88,18 @@ Definir pro SwiftBar, por exemplo:
 defaults write com.ameba.SwiftBar CRAB_SHOW -string remaining
 ```
 
+## Exibição na barra
+
+Clique no 🦀 → **Exibição na barra** e escolha como o título aparece:
+
+| Modo | Fica assim |
+|---|---|
+| **Só percentual** | `🦀 23% · 74%` |
+| **Janela (5h · 7d)** | `🦀 5h 23% · 7d 74%` |
+| **Percentual + reset** | `🦀 23% 3h0m  74% 2d` — quanto falta pro reset, ao lado do % |
+
+A escolha fica salva em `~/.cache/crabbar/prefs.json`.
+
 ## Cores
 
 roxo `< 75%` · âmbar `75–89%` · vermelho `≥ 90%`. O título ganha 🟠/🔴 conforme o **pior** limite. Thresholds configuráveis (`CRAB_WARN`/`CRAB_CRIT`).

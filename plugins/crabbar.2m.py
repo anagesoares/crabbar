@@ -46,6 +46,11 @@ STALE_MAX_MIN = 60       # acima disso o cache é velho demais → indisponível
 BACKOFF_MIN_429 = 10     # após 429, não bate na API por N min (serve cache)
 FETCH_RETRIES = 2        # tentativas extras por execução em erro transitório
 
+# Modo de exibição do título (escolhível pelo menu do dropdown), salvo em prefs.
+PREFS_FILE = os.path.join(CACHE_DIR, "prefs.json")
+TITLE_MODES = ("pct", "window", "reset")  # só %, janela (5h/7d), % + reset
+SELF = os.path.realpath(__file__)
+
 # Thresholds (% usado) para a cor. Configuráveis por env.
 def _thr(name, default):
     try:
@@ -496,6 +501,39 @@ def fmt_mins(m):
     return f"{m}m"
 
 
+def fmt_mins_compact(m):
+    """Compacto pro título da barra: '2d', '3h0m', '45m'."""
+    if m is None:
+        return ""
+    if m >= 1440:
+        return f"{m // 1440}d"
+    if m >= 60:
+        return f"{m // 60}h{m % 60}m"
+    return f"{m}m"
+
+
+def _read_prefs():
+    try:
+        with open(PREFS_FILE, "r") as f:
+            return json.load(f)
+    except (OSError, json.JSONDecodeError):
+        return {}
+
+
+def _write_prefs(d):
+    try:
+        os.makedirs(CACHE_DIR, exist_ok=True)
+        with open(PREFS_FILE, "w") as f:
+            json.dump(d, f)
+    except OSError:
+        pass
+
+
+def title_mode():
+    m = _read_prefs().get("title_mode")
+    return m if m in TITLE_MODES else "window"
+
+
 def disp_pct(used):
     """% a exibir conforme CRAB_SHOW (usado por default, restante se pedido)."""
     if used is None:
@@ -522,8 +560,21 @@ def main():
         worst = max((l["used"] for l in limits), default=0)
         flag = "🔴" if worst >= CRIT else ("🟠" if worst >= WARN else "")
         tail = " ⏳" if stale else ""  # ⏳ = número de cache (offline/backoff)
-        parts = [f"{l['short']} {disp_pct(l['used'])}%" for l in limits]
-        print(f"🦀{flag} " + " · ".join(parts) + tail + f" | color={TITLE}")
+        mode = title_mode()
+        segs = []
+        for l in limits:
+            pc = disp_pct(l["used"])
+            if mode == "pct":
+                segs.append(f"{pc}%")
+            elif mode == "reset":
+                rem = l["reset"]
+                if rem is not None and stale:
+                    rem = max(0, rem - age)  # cache: desconta a idade
+                segs.append(f"{pc}% {fmt_mins_compact(rem)}".rstrip())
+            else:  # window (default)
+                segs.append(f"{l['short']} {pc}%")
+        sep = "  " if mode == "reset" else " · "
+        print(f"🦀{flag} " + sep.join(segs) + tail + f" | color={TITLE}")
     elif spend:
         print(f"🦀 ${spend['all_cost']:.2f} | color={TITLE}")
     else:
@@ -574,11 +625,26 @@ def main():
         print(f"Instalar: npm i -g ccusage | {HEAD}")
 
     print("---")
+    print("Exibição na barra")
+    _cur = title_mode()
+    for _key, _lbl in (("pct", "Só percentual"),
+                       ("window", "Janela (5h · 7d)"),
+                       ("reset", "Percentual + reset")):
+        _mark = "✓ " if _key == _cur else ""
+        print(f"-- {_mark}{_lbl} | bash=\"{SELF}\" param1=--set-title "
+              f"param2={_key} terminal=false refresh=true")
     print(f"Atualizado {time.strftime('%H:%M:%S')} | {HEAD}")
     print("Atualizar agora | refresh=true")
 
 
 if __name__ == "__main__":
+    # Item do menu chama `crabbar.2m.py --set-title <modo>`: salva e sai.
+    if len(sys.argv) >= 3 and sys.argv[1] == "--set-title":
+        if sys.argv[2] in TITLE_MODES:
+            _p = _read_prefs()
+            _p["title_mode"] = sys.argv[2]
+            _write_prefs(_p)
+        sys.exit(0)
     try:
         main()
     except Exception as e:  # never break the menu bar
