@@ -135,6 +135,10 @@ Quase sempre é o SwiftBar que não está rodando — ele não abriu no login, o
    killall SwiftBar && open -a SwiftBar
    ```
 
+4. **Só some quando você troca de app (aparece num, some noutro)?** Não é o CrabBar fechando — é o **notch** do MacBook. Quando o app da frente tem muitos menus no topo (navegadores têm um monte), eles crescem até o notch e o macOS **esconde os ícones da direita atrás dele**. Dois jeitos de resolver:
+   - **Grátis e na hora:** segure **⌘ (Cmd)** e **arraste o 🦀 pra bem perto do relógio**. Os ícones somem da esquerda pra direita quando o espaço aperta, então quanto mais à direita, mais difícil de sumir.
+   - **Definitivo:** instale um gerenciador de barra de menus como o [Ice](https://github.com/jordanbaird/Ice) (grátis, open-source) — ele guarda os ícones que não cabem num menuzinho, e o 🦀 nunca mais some, seja qual for o app.
+
 > **Dica:** o SwiftBar lê o plugin direto da pasta `plugins/` **do repo** (é pra lá que o `install.sh` aponta). Não precisa copiar o `.py` pra dentro de `~/Library/Application Support/SwiftBar/` — se você tiver cópias antigas lá, o SwiftBar nem as usa; rodar `./install.sh` já deixa tudo apontado pro lugar certo.
 
 ## Isto é não-oficial
