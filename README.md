@@ -116,6 +116,27 @@ O SwiftBar **roda todo arquivo executável** da pasta que monitora — e ainda f
 
 O `install.sh` adiciona o SwiftBar aos **Itens de Início** do macOS, então ele volta sozinho depois de reiniciar. Se sumir da barra depois de um reboot, basta `open -a SwiftBar`. Conferir/remover em *Ajustes do Sistema → Geral → Itens de Início*.
 
+## Sumiu da barra? (o que fazer)
+
+Quase sempre é o SwiftBar que não está rodando — ele não abriu no login, ou você fechou sem querer.
+
+1. **Recuperação em 1 comando** — resolve a maioria dos casos:
+   ```bash
+   cd ~/Projects/clawdmeter-swiftbar   # a pasta onde você clonou
+   ./install.sh
+   ```
+   O `install.sh` é idempotente: reaponta o SwiftBar pra `plugins/`, garante o login e **reabre o app**. Pode rodar quantas vezes quiser.
+
+2. **Só reabrir o SwiftBar** (se preferir): `open -a SwiftBar`. Se o ícone 🦀 sumiu mas o do SwiftBar está lá, force um reload: `killall SwiftBar && open -a SwiftBar`.
+
+3. **Apareceu um "?" no lugar do 🦀?** O SwiftBar tenta executar *todo* arquivo da pasta de plugins — um `__pycache__/` ou qualquer arquivo extra ali vira um "plugin" quebrado. Limpe e recarregue:
+   ```bash
+   rm -rf ~/Projects/clawdmeter-swiftbar/plugins/__pycache__
+   killall SwiftBar && open -a SwiftBar
+   ```
+
+> **Dica:** o SwiftBar lê o plugin direto da pasta `plugins/` **do repo** (é pra lá que o `install.sh` aponta). Não precisa copiar o `.py` pra dentro de `~/Library/Application Support/SwiftBar/` — se você tiver cópias antigas lá, o SwiftBar nem as usa; rodar `./install.sh` já deixa tudo apontado pro lugar certo.
+
 ## Isto é não-oficial
 
 Ferramenta independente, **não** feita nem endossada pela Anthropic. "Claude" é marca da Anthropic, citada só pra descrever compatibilidade. Lê o endpoint de uso da Anthropic; se a Anthropic mudar esse endpoint, o parser (escrito de forma defensiva) pode precisar de um ajuste.
